@@ -25,3 +25,8 @@ class TestLeafNode(unittest.TestCase):
     def test_repr(self):
         node = LeafNode(tag="p", value="Hello, world!")
         self.assertEqual(repr(node), "LeafNode(p, Hello, world!, None)")
+
+    def test_missing_value(self):
+        node = LeafNode(tag="p")
+        with self.assertRaises(ValueError):
+            node.to_html()
