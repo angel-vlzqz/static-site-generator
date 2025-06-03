@@ -6,7 +6,9 @@ from markdown_parser import (
     split_nodes_image,
     split_nodes_link,
     text_to_textnodes,
-    markdown_to_blocks
+    markdown_to_blocks,
+    block_to_block_type,
+    BlockType
 )
 from textnode import TextNode, TextType
 
@@ -127,3 +129,78 @@ This is a paragraph of text. It has some **bold** and _italic_ words inside of i
         ]
         
         self.assertListEqual(markdown_to_blocks(markdown), expected)
+
+    def test_block_to_block_type(self):
+        # Test headings
+        self.assertEqual(block_to_block_type("# Heading 1"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("## Heading 2"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("###### Heading 6"), BlockType.HEADING)
+        
+        # Test code blocks
+        self.assertEqual(
+            block_to_block_type("```\ncode block\n```"),
+            BlockType.CODE
+        )
+        self.assertEqual(
+            block_to_block_type("```python\nprint('hello')\n```"),
+            BlockType.CODE
+        )
+        
+        # Test quote blocks
+        self.assertEqual(
+            block_to_block_type("> Quote line 1\n> Quote line 2"),
+            BlockType.QUOTE
+        )
+        
+        # Test unordered lists
+        self.assertEqual(
+            block_to_block_type("- List item 1\n- List item 2\n- List item 3"),
+            BlockType.UNORDERED_LIST
+        )
+        
+        # Test ordered lists
+        self.assertEqual(
+            block_to_block_type("1. List item 1\n2. List item 2\n3. List item 3"),
+            BlockType.ORDERED_LIST
+        )
+        
+        # Test paragraphs
+        self.assertEqual(
+            block_to_block_type("This is a paragraph"),
+            BlockType.PARAGRAPH
+        )
+        self.assertEqual(
+            block_to_block_type("This is a paragraph\nwith multiple lines"),
+            BlockType.PARAGRAPH
+        )
+        
+    def test_block_to_block_type_edge_cases(self):
+        # Test invalid heading (no space after #)
+        self.assertEqual(block_to_block_type("#Heading"), BlockType.PARAGRAPH)
+        
+        # Test invalid code block (missing closing backticks)
+        self.assertEqual(block_to_block_type("```\ncode"), BlockType.PARAGRAPH)
+        
+        # Test invalid quote block (some lines don't start with >)
+        self.assertEqual(
+            block_to_block_type("> Quote line 1\nNot a quote line"),
+            BlockType.PARAGRAPH
+        )
+        
+        # Test invalid unordered list (missing space after -)
+        self.assertEqual(
+            block_to_block_type("-List item 1\n-List item 2"),
+            BlockType.PARAGRAPH
+        )
+        
+        # Test invalid ordered list (wrong numbering)
+        self.assertEqual(
+            block_to_block_type("1. List item 1\n3. List item 2"),
+            BlockType.PARAGRAPH
+        )
+        
+        # Test invalid ordered list (wrong format)
+        self.assertEqual(
+            block_to_block_type("1 List item 1\n2 List item 2"),
+            BlockType.PARAGRAPH
+        )

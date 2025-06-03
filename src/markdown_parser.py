@@ -1,5 +1,14 @@
 import re
 from textnode import TextNode, TextType
+from enum import Enum
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
 
 def extract_markdown_images(text):
     """Extract markdown image syntax from text.
@@ -201,3 +210,48 @@ def markdown_to_blocks(markdown):
             filtered_blocks.append(stripped)
             
     return filtered_blocks
+
+def block_to_block_type(block):
+    """Determine the type of a markdown block.
+    
+    Args:
+        block (str): A single block of markdown text
+        
+    Returns:
+        BlockType: The type of the block
+        
+    Rules:
+        - Headings start with 1-6 # characters, followed by a space
+        - Code blocks start and end with 3 backticks
+        - Quote blocks have every line starting with >
+        - Unordered list blocks have every line starting with - and a space
+        - Ordered list blocks have every line starting with a number, ., and a space
+        - All other blocks are paragraphs
+    """
+    lines = block.split("\n")
+    
+    # Check for heading
+    if re.match(r"^#{1,6}\s", block):
+        return BlockType.HEADING
+    
+    # Check for code block
+    if block.startswith("```") and block.endswith("```"):
+        return BlockType.CODE
+    
+    # Check for quote block
+    if all(line.startswith(">") for line in lines):
+        return BlockType.QUOTE
+    
+    # Check for unordered list
+    if all(re.match(r"^-\s", line) for line in lines):
+        return BlockType.UNORDERED_LIST
+    
+    # Check for ordered list
+    if all(re.match(r"^\d+\.\s", line) for line in lines):
+        # Verify numbers start at 1 and increment by 1
+        numbers = [int(re.match(r"^(\d+)\.", line).group(1)) for line in lines]
+        if numbers == list(range(1, len(numbers) + 1)):
+            return BlockType.ORDERED_LIST
+    
+    # Default to paragraph
+    return BlockType.PARAGRAPH
