@@ -1,12 +1,25 @@
-from textnode import TextNode, TextType
-from copy_static import copy_static
 import os
+import shutil
+from copy_static import copy_static
+from page_generator import generate_page
 
 def main():
+    # Get the project root directory
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    
+    # Define paths
+    static_dir = os.path.join(root_dir, "static")
+    public_dir = os.path.join(root_dir, "public")
+    content_dir = os.path.join(root_dir, "content")
+    template_path = os.path.join(root_dir, "template.html")
+    
     # Copy static files to public directory
-    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
-    public_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "public")
     copy_static(static_dir, public_dir)
+    
+    # Generate index page
+    index_md = os.path.join(content_dir, "index.md")
+    index_html = os.path.join(public_dir, "index.html")
+    generate_page(index_md, template_path, index_html)
 
 if __name__ == "__main__":
     main()
