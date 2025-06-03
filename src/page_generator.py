@@ -26,13 +26,14 @@ def convert_links_to_relative(html_content, from_path, dest_path):
     
     return html_content
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     """Generate an HTML page from a markdown file using a template.
     
     Args:
         from_path (str): Path to the markdown file to convert
         template_path (str): Path to the HTML template file
         dest_path (str): Path where the generated HTML file should be saved
+        basepath (str): Base path for all URLs in the generated HTML
     """
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     
@@ -55,8 +56,9 @@ def generate_page(from_path, template_path, dest_path):
     html_page = template.replace("{{ Title }}", title)
     html_page = html_page.replace("{{ Content }}", html_content)
     
-    # Convert absolute paths to relative paths
-    html_page = convert_links_to_relative(html_page, from_path, dest_path)
+    # Replace absolute paths with basepath
+    html_page = html_page.replace('href="/', f'href="{basepath}')
+    html_page = html_page.replace('src="/', f'src="{basepath}')
     
     # Create destination directory if it doesn't exist
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -65,13 +67,14 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, "w") as f:
         f.write(html_page)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     """Recursively generate HTML pages from markdown files in a directory.
     
     Args:
         dir_path_content (str): Path to the content directory containing markdown files
         template_path (str): Path to the HTML template file
         dest_dir_path (str): Path to the destination directory where HTML files will be written
+        basepath (str): Base path for all URLs in the generated HTML
     """
     # Create destination directory if it doesn't exist
     os.makedirs(dest_dir_path, exist_ok=True)
@@ -96,4 +99,4 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
                 html_path = os.path.join(dest_path, html_file)
                 
                 # Generate the HTML page
-                generate_page(md_path, template_path, html_path) 
+                generate_page(md_path, template_path, html_path, basepath) 
