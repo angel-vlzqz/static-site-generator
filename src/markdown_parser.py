@@ -1,6 +1,9 @@
 import re
 from textnode import TextNode, TextType
 from enum import Enum
+from parentnode import ParentNode
+from leafnode import LeafNode
+from text_to_html import text_node_to_html_node
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -255,3 +258,51 @@ def block_to_block_type(block):
     
     # Default to paragraph
     return BlockType.PARAGRAPH
+
+def text_to_children(text):
+    """Converts a string of markdown text to a list of HTMLNode children using inline parsing."""
+    nodes = text_to_textnodes(text)
+    return [text_node_to_html_node(node) for node in nodes]
+
+def markdown_to_html_node(markdown):
+    """Converts a full markdown document into a single parent HTMLNode (<div>)."""
+    blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        if block_type == BlockType.PARAGRAPH:
+            para_text = " ".join(block.splitlines())
+            children.append(ParentNode("p", text_to_children(para_text)))
+        elif block_type == BlockType.HEADING:
+            match = re.match(r"^(#{1,6}) ", block)
+            level = len(match.group(1)) if match else 1
+            tag = f"h{level}"
+            text = block[level+1:] if match else block
+            heading_text = " ".join(text.splitlines())
+            children.append(ParentNode(tag, text_to_children(heading_text)))
+        elif block_type == BlockType.CODE:
+            code_content = re.sub(r"^```[a-zA-Z]*\n?|```$", "", block, flags=re.MULTILINE)
+            code_node = LeafNode("code", code_content)
+            pre_node = ParentNode("pre", [code_node])
+            children.append(pre_node)
+        elif block_type == BlockType.QUOTE:
+            quote_lines = [line[1:].lstrip() for line in block.split("\n")]
+            quote_text = "\n".join(quote_lines)
+            children.append(ParentNode("blockquote", text_to_children(quote_text)))
+        elif block_type == BlockType.UNORDERED_LIST:
+            items = [line[2:] for line in block.split("\n")]  # Remove '- '
+            li_nodes = [ParentNode("li", text_to_children(item)) for item in items]
+            children.append(ParentNode("ul", li_nodes))
+        elif block_type == BlockType.ORDERED_LIST:
+            items = [re.sub(r"^\d+\. ", "", line) for line in block.split("\n")]
+            li_nodes = [ParentNode("li", text_to_children(item)) for item in items]
+            children.append(ParentNode("ol", li_nodes))
+    return ParentNode("div", children)
+
+def extract_title(markdown):
+    if '#' in markdown:
+        markdown = markdown.lstrip('#')
+        markdown = markdown.lstrip(' ')
+        return markdown
+    else:
+        raise Exception('no title in markdown found')

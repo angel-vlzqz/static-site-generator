@@ -8,7 +8,9 @@ from markdown_parser import (
     text_to_textnodes,
     markdown_to_blocks,
     block_to_block_type,
-    BlockType
+    BlockType,
+    markdown_to_html_node,
+    extract_title,
 )
 from textnode import TextNode, TextType
 
@@ -204,3 +206,59 @@ This is a paragraph of text. It has some **bold** and _italic_ words inside of i
             block_to_block_type("1 List item 1\n2 List item 2"),
             BlockType.PARAGRAPH
         )
+
+    def test_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+    def test_codeblock(self):
+        md = """
+```
+This is text that _should_ remain\nthe **same** even with inline stuff\n```
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+        )
+
+    def test_simple_title(self):
+        markdown = "# My Title"
+        self.assertEqual(extract_title(markdown), "My Title")
+
+    def test_title_with_extra_spaces(self):
+        markdown = "#   My Title"
+        self.assertEqual(extract_title(markdown), "My Title")
+
+    def test_title_with_multiple_hashes(self):
+        markdown = "### My Title"
+        self.assertEqual(extract_title(markdown), "My Title")
+
+    def test_no_title(self):
+        markdown = "This is not a title"
+        with self.assertRaises(Exception) as context:
+            extract_title(markdown)
+        self.assertEqual(str(context.exception), "no title in markdown found")
+
+    def test_empty_string(self):
+        markdown = ""
+        with self.assertRaises(Exception) as context:
+            extract_title(markdown)
+        self.assertEqual(str(context.exception), "no title in markdown found")
+
+    def test_title_with_content_after(self):
+        markdown = "# My Title\nSome content after"
+        self.assertEqual(extract_title(markdown), "My Title\nSome content after")
