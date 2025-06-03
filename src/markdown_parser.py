@@ -176,3 +176,28 @@ def text_to_textnodes(text):
     nodes = split_nodes_link(nodes)
     
     return nodes
+
+def markdown_to_blocks(markdown):
+    """Split markdown text into blocks.
+    
+    Args:
+        markdown (str): Raw markdown text to split into blocks
+        
+    Returns:
+        list: List of markdown blocks with whitespace stripped
+        
+    Example:
+        Input: "# Heading\n\nParagraph\n\n- List item"
+        Output: ["# Heading", "Paragraph", "- List item"]
+    """
+    # Split by double newlines
+    blocks = markdown.split("\n\n")
+    
+    # Strip whitespace and filter out empty blocks
+    filtered_blocks = []
+    for block in blocks:
+        stripped = block.strip()
+        if stripped != "":
+            filtered_blocks.append(stripped)
+            
+    return filtered_blocks

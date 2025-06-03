@@ -5,7 +5,8 @@ from markdown_parser import (
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
-    text_to_textnodes
+    text_to_textnodes,
+    markdown_to_blocks
 )
 from textnode import TextNode, TextType
 
@@ -87,3 +88,42 @@ class TestMarkdownParser(unittest.TestCase):
             TextNode("link", TextType.LINK, "https://boot.dev"),
         ]
         self.assertListEqual(text_to_textnodes(text), expected) 
+
+    def test_markdown_to_blocks(self):
+        markdown = """# This is a heading
+
+This is a paragraph of text. It has some **bold** and _italic_ words inside of it.
+
+- This is the first list item in a list block
+- This is a list item
+- This is another list item"""
+        
+        expected = [
+            "# This is a heading",
+            "This is a paragraph of text. It has some **bold** and _italic_ words inside of it.",
+            "- This is the first list item in a list block\n- This is a list item\n- This is another list item"
+        ]
+        
+        self.assertListEqual(markdown_to_blocks(markdown), expected)
+        
+    def test_markdown_to_blocks_with_extra_newlines(self):
+        markdown = """# This is a heading
+
+
+
+This is a paragraph of text. It has some **bold** and _italic_ words inside of it.
+
+
+
+
+- This is the first list item in a list block
+- This is a list item
+- This is another list item"""
+        
+        expected = [
+            "# This is a heading",
+            "This is a paragraph of text. It has some **bold** and _italic_ words inside of it.",
+            "- This is the first list item in a list block\n- This is a list item\n- This is another list item"
+        ]
+        
+        self.assertListEqual(markdown_to_blocks(markdown), expected)
