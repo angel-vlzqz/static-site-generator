@@ -10,10 +10,9 @@ def extract_markdown_images(text):
     Returns:
         list: List of tuples containing (alt_text, image_url)
     """
-    alt_text = re.findall(r"\[(.*?)\]", text)
-    link_text = re.findall(r"\((.*?)\)", text)
-    matches = zip(alt_text, link_text)
-    return list(matches)
+    pattern = r"!\[(.*?)\]\((.*?)\)"
+    matches = re.findall(pattern, text)
+    return matches
 
 def extract_markdown_links(text):
     """Extract markdown link syntax from text.
@@ -137,3 +136,43 @@ def split_nodes_link(old_nodes):
             new_nodes.append(TextNode(original_text, TextType.TEXT))
 
     return new_nodes 
+
+def text_to_textnodes(text):
+    """Convert a markdown text string into a list of TextNode objects.
+    
+    Args:
+        text (str): Raw markdown text to convert
+        
+    Returns:
+        list: List of TextNode objects representing the parsed markdown
+        
+    Example:
+        Input: "This is **text** with an _italic_ word and a `code block`"
+        Output: [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE)
+        ]
+    """
+    # Start with a single text node
+    nodes = [TextNode(text, TextType.TEXT)]
+    
+    # Split by bold text
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    
+    # Split by italic text
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    
+    # Split by code blocks
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    
+    # Split by images
+    nodes = split_nodes_image(nodes)
+    
+    # Split by links
+    nodes = split_nodes_link(nodes)
+    
+    return nodes
