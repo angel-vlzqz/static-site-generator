@@ -1,5 +1,6 @@
 # Generated site directory
 public/
+content/
 
 # Python
 __pycache__/
