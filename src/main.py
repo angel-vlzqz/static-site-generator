@@ -1,10 +1,12 @@
-from textnode import *
-print('hello world')
+from textnode import TextNode, TextType
+from copy_static import copy_static
+import os
 
 def main():
-    node = TextNode('this is some anchor text', TextType.TEXT, 'www.linkedin.com/in/angel-vlzqz')
-    print(node)
+    # Copy static files to public directory
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+    public_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "public")
+    copy_static(static_dir, public_dir)
 
-
-
-main()
+if __name__ == "__main__":
+    main()
