@@ -1,7 +1,7 @@
 import os
 import shutil
 from copy_static import copy_static
-from page_generator import generate_page
+from page_generator import generate_pages_recursive
 
 def main():
     # Get the project root directory
@@ -16,10 +16,8 @@ def main():
     # Copy static files to public directory
     copy_static(static_dir, public_dir)
     
-    # Generate index page
-    index_md = os.path.join(content_dir, "index.md")
-    index_html = os.path.join(public_dir, "index.html")
-    generate_page(index_md, template_path, index_html)
+    # Generate all pages recursively
+    generate_pages_recursive(content_dir, template_path, public_dir)
 
 if __name__ == "__main__":
     main()
